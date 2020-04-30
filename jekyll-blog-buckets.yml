@@ -52,6 +52,8 @@ Resources:
         ServerSideEncryptionConfiguration:
         - ServerSideEncryptionByDefault:
             SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
       LoggingConfiguration:
         DestinationBucketName: !Ref 'LogDeliveryBucket'
         LogFilePrefix: jekyllblogbucket-logs
@@ -88,6 +90,12 @@ Resources:
         ServerSideEncryptionConfiguration:
         - ServerSideEncryptionByDefault:
             SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+      
       Tags:
         - Key: Name
           Value: !Ref LogDeliveryBucketName
