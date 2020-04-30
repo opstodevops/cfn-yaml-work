@@ -1,0 +1,115 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  AWS CloudFormation Template creating Bucket resources for Jekyll Blog content:
+Metadata:
+  'AWS::CloudFormation::Interface':
+    ParameterGroups:
+    - Label:
+        default: Template Definition
+      Parameters:
+        - JekyllBlogBucketName
+        - LogDeliveryBucketName
+        - Environment
+    - Label:
+        default: Stack Tagging
+      Parameters:
+      - CreatedBy
+    ParameterLabels:
+      CreatedBy:
+        default: Staff who executed this script
+Parameters:    
+  Environment:
+    Description: Environment
+    Type: String
+    AllowedValues: 
+      - NONPROD
+      - PROD
+      - OAT
+    ConstraintDescription: Choose an environment to create the S3 Bucket in.
+  JekyllBlogBucketName:
+    Type: String
+    Description: Enter a name for Jekyll Blog bucket
+    Default: www.blogpost.com
+  LogDeliveryBucketName:
+    Type: String
+    Description: Enter a name for Access Log bucket
+    Default: jekyll-bucket-access-logs
+  CreatedBy:
+    Type: String
+    Description: Who executed this template
+    Default: ''
+Resources:
+  JekyllBlogBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Ref JekyllBlogBucketName
+      AccessControl: PublicRead
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: 404.html
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+        - ServerSideEncryptionByDefault:
+            SSEAlgorithm: AES256
+      LoggingConfiguration:
+        DestinationBucketName: !Ref 'LogDeliveryBucket'
+        LogFilePrefix: jekyllblogbucket-logs
+      Tags:
+        - Key: Name
+          Value: !Ref JekyllBlogBucketName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: CreatedBy
+          Value: !Ref CreatedBy
+  JekyllBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      PolicyDocument:
+        Id: JekyllBucketPolicy
+        Version: 2012-10-17
+        Statement:
+          - Sid: PublicReadForGetBucketObjects
+            Effect: Allow
+            Principal: '*'
+            Action: 's3:GetObject'
+            Resource: !Join 
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref JekyllBlogBucket
+                - /*
+      Bucket: !Ref JekyllBlogBucket
+  LogDeliveryBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Ref LogDeliveryBucketName
+      AccessControl: LogDeliveryWrite
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+        - ServerSideEncryptionByDefault:
+            SSEAlgorithm: AES256
+      Tags:
+        - Key: Name
+          Value: !Ref LogDeliveryBucketName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: CreatedBy
+          Value: !Ref CreatedBy
+Outputs:
+  FirstBucketUrl:
+    Description: Name of first S3 bucket to hold content
+    Value: !GetAtt JekyllBlogBucket.WebsiteURL
+  FirstBucketArn:
+    Description: ARN of first S3 bucket
+    Value: !GetAtt JekyllBlogBucket.Arn
+    Export:
+      Name: JekyllBlogBucket
+  SecondBucketUrl:
+    Description: Name of second S3 bucket to hold content
+    Value: !GetAtt LogDeliveryBucket.WebsiteURL 
+  SecondBucketArn:
+    Description: ARN of second S3 bucket
+    Value: !GetAtt LogDeliveryBucket.Arn
+    Export:
+      Name: LogDeliveryBucket
+  
