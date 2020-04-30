@@ -111,7 +111,7 @@ Outputs:
     Description: ARN of first S3 bucket
     Value: !GetAtt JekyllBlogBucket.Arn
     Export:
-      Name: JekyllBlogBucket
+      Name: !Sub '${AWS::StackName}-JekyllBlogBucket'
   SecondBucketUrl:
     Description: Name of second S3 bucket to hold content
     Value: !GetAtt LogDeliveryBucket.WebsiteURL 
@@ -119,5 +119,5 @@ Outputs:
     Description: ARN of second S3 bucket
     Value: !GetAtt LogDeliveryBucket.Arn
     Export:
-      Name: LogDeliveryBucket
+      Name: !Sub '${AWS::StackName}-LogDeliveryBucket'
   
