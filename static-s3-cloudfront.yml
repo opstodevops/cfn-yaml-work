@@ -72,12 +72,6 @@ Outputs:
   BucketName:
     Description: 'S3 Bucket Name'
     Value: !Ref S3Bucket
-  AccessKeyId:
-    Description: 'S3 Access Key'
-    Value: !Ref PublishCredentials
-  AccessKeySecret:
-    Description: 'S3 Secret Key'
-    Value: !GetAtt PublishCredentials.SecretAccessKey
   DistributionId:
     Description: 'CloudFront Distribution ID'
     Value: !Ref CloudFrontDistribution
