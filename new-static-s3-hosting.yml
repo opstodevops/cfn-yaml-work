@@ -8,7 +8,7 @@ Metadata:
         default: 'Parent Stacks'
       Parameters:
       - ParentZoneStack
-      - ParentAlertStack
+      # - ParentAlertStack
       # - ParentS3StackAccessLog
     # - Label:
     #     default: 'Lambda@Edge Parameters'
@@ -37,10 +37,10 @@ Parameters:
   ParentZoneStack:
     Description: 'Stack name of parent zone stack based on vpc/zone-*.yaml template.'
     Type: String
-  ParentAlertStack:
-    Description: 'Optional but recommended stack name of parent alert stack based on operations/alert.yaml template.'
-    Type: String
-    Default: ''
+  # ParentAlertStack:
+  #   Description: 'Optional but recommended stack name of parent alert stack based on operations/alert.yaml template.'
+  #   Type: String
+  #   Default: ''
   # ParentS3StackAccessLog:
   #   Description: 'Optional stack name of parent s3 stack based on state/s3.yaml template (with Access set to ElbAccessLogWrite) to store access logs.'
   #   Type: String
@@ -73,15 +73,15 @@ Parameters:
     Description: 'Optional path of the error page for the website (e.g. /error.html).'
     Type: String
     Default: ''
-  EnableRedirectSubDomainName:
-    Description: 'Sometimes, you want one (sub)domain to redirect to the primary name. E.g., if your primary website is www.widdix.net, you want widdix.net to redirect to www.widdix.net.'
-    Type: String
-    Default: 'false'
-    AllowedValues: ['true', 'false']
-  RedirectSubDomainNameWithDot:
-    Description: 'Optional name that is used to create the DNS entry with trailing dot, e.g. ?{RedirectSubDomainNameWithDot}?{HostedZoneName}. Leave blank for naked (or apex and bare) domain.'
-    Type: String
-    Default: ''
+  # EnableRedirectSubDomainName:
+  #   Description: 'Sometimes, you want one (sub)domain to redirect to the primary name. E.g., if your primary website is www.widdix.net, you want widdix.net to redirect to www.widdix.net.'
+  #   Type: String
+  #   Default: 'false'
+  #   AllowedValues: ['true', 'false']
+  # RedirectSubDomainNameWithDot:
+  #   Description: 'Optional name that is used to create the DNS entry with trailing dot, e.g. ?{RedirectSubDomainNameWithDot}?{HostedZoneName}. Leave blank for naked (or apex and bare) domain.'
+  #   Type: String
+  #   Default: ''
   CertificateType:
     Description: 'Indicates whether to use the certificate from the AWS Certificate Manager or AWS Identity and Access Management. CreateAcmCertificate only works in the us-east-1 region!'
     Type: String
@@ -96,7 +96,7 @@ Parameters:
     Default: ''
 Conditions:
   # HasS3Bucket: !Not [!Equals [!Ref ParentS3StackAccessLog, '']]
-  HasRedirectDomainName: !Equals [!Ref EnableRedirectSubDomainName, 'true']
+  # HasRedirectDomainName: !Equals [!Ref EnableRedirectSubDomainName, 'true']
   HasAcmCertificateArn: !Equals [!Ref CertificateType, 'AcmCertificateArn']
   HasIamCertificateId: !Equals [!Ref CertificateType, 'IamCertificateId']
   HasCreateAcmCertificate: !Equals [!Ref CertificateType, 'CreateAcmCertificate']
@@ -106,7 +106,7 @@ Conditions:
   # HasViewerResponseLambdaEdgeFunctionVersionARN: !Not [!Equals [!Ref ViewerResponseLambdaEdgeFunctionVersionARN, '']]
   HasDefaultRootObject: !Not [!Equals [!Ref DefaultRootObject, '']]
   HasDefaultErrorPagePath: !Not [!Equals [!Ref DefaultErrorPagePath, '']]
-  HasAlertTopic: !Not [!Equals [!Ref ParentAlertStack, '']]
+  # HasAlertTopic: !Not [!Equals [!Ref ParentAlertStack, '']]
   HasRegionNorthVirginia: !Equals [!Ref 'AWS::Region', 'us-east-1']
   # HasAlertTopicAndRegionNorthVirginia: !And [!Condition HasAlertTopic, !Condition HasRegionNorthVirginia]
 Resources:
@@ -118,8 +118,7 @@ Resources:
       - '${SubDomainNameWithDot}${HostedZoneName}'
       - SubDomainNameWithDot: !Ref SubDomainNameWithDot
         HostedZoneName: {'Fn::ImportValue': !Sub '${ParentZoneStack}-HostedZoneName'}
-      DomainValidationOptions: !If
-      - HasRedirectDomainName
+      DomainValidationOptions:
       - - DomainName: !Sub
           - '${SubDomainNameWithDot}${HostedZoneName}'
           - SubDomainNameWithDot: !Ref SubDomainNameWithDot
@@ -128,29 +127,29 @@ Resources:
           - '${SubDomainNameWithDot}${HostedZoneName}'
           - SubDomainNameWithDot: !Ref SubDomainNameWithDot
             HostedZoneName: {'Fn::ImportValue': !Sub '${ParentZoneStack}-HostedZoneName'}
-        - DomainName: !Sub
-          - '${RedirectSubDomainNameWithDot}${HostedZoneName}'
-          - RedirectSubDomainNameWithDot: !Ref RedirectSubDomainNameWithDot
-            HostedZoneName: {'Fn::ImportValue': !Sub '${ParentZoneStack}-HostedZoneName'}
-          ValidationDomain: !Sub
-          - '${SubDomainNameWithDot}${HostedZoneName}'
-          - SubDomainNameWithDot: !Ref SubDomainNameWithDot
-            HostedZoneName: {'Fn::ImportValue': !Sub '${ParentZoneStack}-HostedZoneName'}
-      - - DomainName: !Sub
-          - '${SubDomainNameWithDot}${HostedZoneName}'
-          - SubDomainNameWithDot: !Ref SubDomainNameWithDot
-            HostedZoneName: {'Fn::ImportValue': !Sub '${ParentZoneStack}-HostedZoneName'}
-          ValidationDomain: !Sub
-          - '${SubDomainNameWithDot}${HostedZoneName}'
-          - SubDomainNameWithDot: !Ref SubDomainNameWithDot
-            HostedZoneName: {'Fn::ImportValue': !Sub '${ParentZoneStack}-HostedZoneName'}
-      SubjectAlternativeNames: !If
-      - HasRedirectDomainName
-      - - !Sub
-          - '${RedirectSubDomainNameWithDot}${HostedZoneName}'
-          - RedirectSubDomainNameWithDot: !Ref RedirectSubDomainNameWithDot
-            HostedZoneName: {'Fn::ImportValue': !Sub '${ParentZoneStack}-HostedZoneName'}
-      - []
+      #   - DomainName: !Sub
+      #     - '${RedirectSubDomainNameWithDot}${HostedZoneName}'
+      #     - RedirectSubDomainNameWithDot: !Ref RedirectSubDomainNameWithDot
+      #       HostedZoneName: {'Fn::ImportValue': !Sub '${ParentZoneStack}-HostedZoneName'}
+      #     ValidationDomain: !Sub
+      #     - '${SubDomainNameWithDot}${HostedZoneName}'
+      #     - SubDomainNameWithDot: !Ref SubDomainNameWithDot
+      #       HostedZoneName: {'Fn::ImportValue': !Sub '${ParentZoneStack}-HostedZoneName'}
+      # - - DomainName: !Sub
+      #     - '${SubDomainNameWithDot}${HostedZoneName}'
+      #     - SubDomainNameWithDot: !Ref SubDomainNameWithDot
+      #       HostedZoneName: {'Fn::ImportValue': !Sub '${ParentZoneStack}-HostedZoneName'}
+      #     ValidationDomain: !Sub
+      #     - '${SubDomainNameWithDot}${HostedZoneName}'
+      #     - SubDomainNameWithDot: !Ref SubDomainNameWithDot
+      #       HostedZoneName: {'Fn::ImportValue': !Sub '${ParentZoneStack}-HostedZoneName'}
+      # SubjectAlternativeNames: !If
+      # - HasRedirectDomainName
+      # - - !Sub
+      #     - '${RedirectSubDomainNameWithDot}${HostedZoneName}'
+      #     - RedirectSubDomainNameWithDot: !Ref RedirectSubDomainNameWithDot
+      #       HostedZoneName: {'Fn::ImportValue': !Sub '${ParentZoneStack}-HostedZoneName'}
+      # - []
   S3Bucket:
     Type: 'AWS::S3::Bucket'
     Properties:
@@ -208,21 +207,8 @@ Resources:
     Type: 'AWS::CloudFront::Distribution'
     Properties:
       DistributionConfig:
-        # Aliases: !If
-        # - HasRedirectDomainName
-        Aliases:
-        - - !Sub
-            - '${SubDomainNameWithDot}${HostedZoneName}'
-            - SubDomainNameWithDot: !Ref SubDomainNameWithDot
-              HostedZoneName: {'Fn::ImportValue': !Sub '${ParentZoneStack}-HostedZoneName'}
-          - !Sub
-            - '${RedirectSubDomainNameWithDot}${HostedZoneName}'
-            - RedirectSubDomainNameWithDot: !Ref RedirectSubDomainNameWithDot
-              HostedZoneName: {'Fn::ImportValue': !Sub '${ParentZoneStack}-HostedZoneName'}
-        - - !Sub
-            - '${SubDomainNameWithDot}${HostedZoneName}'
-            - SubDomainNameWithDot: !Ref SubDomainNameWithDot
-              HostedZoneName: {'Fn::ImportValue': !Sub '${ParentZoneStack}-HostedZoneName'}
+        # Aliases:
+        # - {'Fn::ImportValue': !Sub '${ParentZoneStack}-HostedZoneName'}
         Comment: !Sub
         - '${SubDomainNameWithDot}${HostedZoneName}'
         - SubDomainNameWithDot: !Ref SubDomainNameWithDot
@@ -270,10 +256,11 @@ Resources:
             OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}'
         PriceClass: 'PriceClass_All'
         ViewerCertificate:
-          AcmCertificateArn: !If [HasCreateAcmCertificate, !Ref Certificate, !If [HasAcmCertificateArn, !Ref ExistingCertificate, !Ref 'AWS::NoValue']]
-          IamCertificateId: !If [HasIamCertificateId, !Ref ExistingCertificate, !Ref 'AWS::NoValue']
-          MinimumProtocolVersion: 'TLSv1.1_2016'
-          SslSupportMethod: 'sni-only'
+          CloudFrontDefaultCertificate: 'true'
+          # AcmCertificateArn: !If [HasCreateAcmCertificate, !Ref Certificate, !If [HasAcmCertificateArn, !Ref ExistingCertificate, !Ref 'AWS::NoValue']]
+          # IamCertificateId: !If [HasIamCertificateId, !Ref ExistingCertificate, !Ref 'AWS::NoValue']
+          # MinimumProtocolVersion: 'TLSv1.1_2016'
+          # SslSupportMethod: 'sni-only'
   Route53RecordV2:
     Type: 'AWS::Route53::RecordSetGroup'
     Properties:
