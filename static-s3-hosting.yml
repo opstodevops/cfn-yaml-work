@@ -32,6 +32,7 @@ Parameters:
   LogDeliveryBucketName:
     Description: 'Enter a name for Access Log bucket'
     Type: String
+    Default: 'compliance-accesslog-delivery-bucket'
   SubDomainNameWithDot:
     Description: 'Primary name that is used to create the DNS entry with trailing dot, e.g. ?{SubDomainNameWithDot}?{HostedZoneName}. Leave blank for naked (or apex and bare) domain.'
     Type: String
