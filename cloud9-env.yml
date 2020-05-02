@@ -51,7 +51,7 @@ Resources:
       InstanceType: !Ref InstanceType
       Name: !Ref Name
       Tags: 
-        - Key: Name
+        - Key: Cloud9Name
           Value: !Ref Name
         - Key: Environment
           Value: !Ref Environment
