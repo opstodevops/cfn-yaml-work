@@ -1,7 +1,7 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
 Description: >-
-  AWS CloudFormation Template creating Bucket resources for Jekyll Blog content:
+  AWS CloudFormation Template creating resources for Cloud 9 Environment.
 Metadata:
   'AWS::CloudFormation::Interface':
     ParameterGroups:
@@ -31,7 +31,7 @@ Parameters:
       - OAT
     ConstraintDescription: 'Choose an environment to create the resource in.'
   InstanceType: 
-    Type: AWS::EC2::Instance
+    Type: String
     Description: 'Choose an instance type for Cloud 9 Environment'
     Default: t2.micro
     AllowedValues: 
