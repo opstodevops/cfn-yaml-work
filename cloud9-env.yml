@@ -1,0 +1,57 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  AWS CloudFormation Template creating Bucket resources for Jekyll Blog content:
+Metadata:
+  'AWS::CloudFormation::Interface':
+    ParameterGroups:
+    - Label:
+        default: Template Definition
+      Parameters:
+        - Name
+        - Description
+        - Environment
+        - InstanceType
+    - Label:
+        Default: Stack Tagging
+      Parameters:
+        - CreatedBy
+Parameters:
+  Name:
+    Type: String
+    Description: 'Enter name for Cloud 9 Environment'
+    Default: Playground
+  Environment: 
+    Type: String
+    Description: 'What environment is this Cloud 9 Environment for?'
+    Default: NONPROD
+    AllowedValues: 
+      - NONPROD
+      - PROD
+      - OAT
+    ConstraintDescription: 'Choose an environment to create the resource in.'
+  InstanceType: 
+    Type: AWS::EC2::Instance
+    Description: 'Choose an instance type for Cloud 9 Environment'
+    Default: t2.micro
+    AllowedValues: 
+      - t2.micro
+      - t3.small
+      - m5.large
+  CreatedBy:
+    Type: String
+    Description: 'Who executed this script'
+    Default: System
+Resources:
+  Cloud9Environment:
+    Type: AWS::Cloud9::EnvironmentEC2
+    Properties: 
+      AutomaticStopTimeMinutes: 30
+      Description: !Ref Name
+      InstanceType: !Ref InstanceType
+      Name: !Ref Name
+      Tags: 
+        - Key: Name
+          Value: !Ref Name
+        - Key: Environment
+          Value: !Ref Environment
