@@ -52,6 +52,27 @@ Mappings:
       S3hostedzoneID: Z31GFT0UA1I2HV
       websiteendpoint: s3-website-sa-east-1.amazonaws.com
 Resources:
+  JekyllRootBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub
+      - '${HostedZoneName}'
+      - HostedZoneName: {'Fn::ImportValue': !Sub '${ParentZoneStack}-HostedZoneName'}
+      AccessControl: PublicRead
+      WebsiteConfiguration:
+        RedirectAllRequestsTo:
+          HostName: !Ref JekyllBlogBucket
+        # IndexDocument: index.html
+        # ErrorDocument: 404.html
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+        - ServerSideEncryptionByDefault:
+            SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      LoggingConfiguration:
+        DestinationBucketName: !Ref 'LogDeliveryBucket'
+        LogFilePrefix: !Sub '${ParentZoneStack}-rootbucket-logs'
   JekyllBlogBucket:
     Type: 'AWS::S3::Bucket'
     Properties:
@@ -114,10 +135,8 @@ Resources:
           HostedZoneName: {'Fn::ImportValue': !Sub '${ParentZoneStack}-HostedZoneName'}
         Type: A
         AliasTarget:
-          # HostedZoneId: 'Z3AQBSTGFYJSTF'
           HostedZoneId: !FindInMap [ RegionMap, !Ref 'AWS::Region', S3hostedzoneID]
           DNSName: !FindInMap [ RegionMap, !Ref 'AWS::Region', websiteendpoint]
-          # DNSName: !GetAtt 'JekyllBlogBucket.DomainName'
   Route53RecordIPv6:
     Type: 'AWS::Route53::RecordSetGroup'
     Properties:
@@ -129,10 +148,8 @@ Resources:
           HostedZoneName: {'Fn::ImportValue': !Sub '${ParentZoneStack}-HostedZoneName'}
         Type: AAAA
         AliasTarget:
-          # HostedZoneId: 'Z3AQBSTGFYJSTF'
           HostedZoneId: !FindInMap [ RegionMap, !Ref 'AWS::Region', S3hostedzoneID]
           DNSName: !FindInMap [ RegionMap, !Ref 'AWS::Region', websiteendpoint]
-          # DNSName: !GetAtt 'JekyllBlogBucket.DomainName'
 Outputs:
   StackName:
     Description: 'Stack name.'
