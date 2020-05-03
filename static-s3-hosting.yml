@@ -9,22 +9,10 @@ Metadata:
       Parameters:
       - ParentZoneStack
       - LogDeliveryBucketName
-    # - Label:
-    #     default: 'CloudFront Parameters'
-    #   Parameters:
-    #   - DefaultRootObject
-    #   - DefaultErrorPagePath
     - Label:
         default: 'DNS Parameters'
       Parameters:
       - SubDomainNameWithDot
-      # - EnableRedirectSubDomainName
-      # - RedirectSubDomainNameWithDot
-    # - Label:
-    #     default: 'SSL/TLS Parameters'
-    #   Parameters:
-    #   - CertificateType
-    #   - ExistingCertificate
 Parameters:
   ParentZoneStack:
     Description: 'Stack name of parent zone stack based on vpc/zone-*.yaml template.'
@@ -37,23 +25,6 @@ Parameters:
     Description: 'Primary name that is used to create the DNS entry with trailing dot, e.g. ?{SubDomainNameWithDot}?{HostedZoneName}. Leave blank for naked (or apex and bare) domain.'
     Type: String
     Default: 'www.'
-  # CertificateType:
-  #   Description: 'Indicates whether to use the certificate from the AWS Certificate Manager or AWS Identity and Access Management. CreateAcmCertificate only works in the us-east-1 region!'
-  #   Type: String
-  #   Default: IamCertificateId
-  #   AllowedValues:
-  #   - AcmCertificateArn
-  #   - IamCertificateId
-  #   - CreateAcmCertificate
-  # ExistingCertificate:
-  #   Description: 'Optional ACM Certificate ARN or IAM Certificate ID. Certificate must be created in the us-east-1 region!'
-  #   Type: String
-  #   Default: ''
-Conditions:
-  # HasAcmCertificateArn: !Equals [!Ref CertificateType, 'AcmCertificateArn']
-  # HasIamCertificateId: !Equals [!Ref CertificateType, 'IamCertificateId']
-  # HasCreateAcmCertificate: !Equals [!Ref CertificateType, 'CreateAcmCertificate']
-  HasRegionNorthVirginia: !Equals [!Ref 'AWS::Region', 'us-east-1']
 Mappings:
   RegionMap:
     us-east-1:
@@ -132,23 +103,6 @@ Resources:
         IgnorePublicAcls: true
         BlockPublicPolicy: true
         RestrictPublicBuckets: true
-  # Certificate:
-  #   Condition: HasCreateAcmCertificate
-  #   Type: 'AWS::CertificateManager::Certificate'
-  #   Properties:
-  #     DomainName: !Sub
-  #     - '${SubDomainNameWithDot}${HostedZoneName}'
-  #     - SubDomainNameWithDot: !Ref SubDomainNameWithDot
-  #       HostedZoneName: {'Fn::ImportValue': !Sub '${ParentZoneStack}-HostedZoneName'}
-  #     DomainValidationOptions:
-  #     - - DomainName: !Sub
-  #         - '${SubDomainNameWithDot}${HostedZoneName}'
-  #         - SubDomainNameWithDot: !Ref SubDomainNameWithDot
-  #           HostedZoneName: {'Fn::ImportValue': !Sub '${ParentZoneStack}-HostedZoneName'}
-  #         ValidationDomain: !Sub
-  #         - '${SubDomainNameWithDot}${HostedZoneName}'
-  #         - SubDomainNameWithDot: !Ref SubDomainNameWithDot
-  #           HostedZoneName: {'Fn::ImportValue': !Sub '${ParentZoneStack}-HostedZoneName'}
   Route53RecordV2:
     Type: 'AWS::Route53::RecordSetGroup'
     Properties:
