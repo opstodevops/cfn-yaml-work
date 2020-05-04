@@ -71,8 +71,9 @@ Resources:
       VersioningConfiguration:
         Status: Enabled
       LoggingConfiguration:
-        DestinationBucketName: !Ref 'LogDeliveryBucket'
-        LogFilePrefix: !Sub '${ParentZoneStack}-rootbucket-logs'
+        DestinationBucketName: !Ref LogDeliveryBucket
+        LogFilePrefix: !Join [ "/", ["jekyll", "RootBucketlogs", !Sub '${ParentZoneStack}']]
+        # LogFilePrefix: !Sub '${ParentZoneStack}-rootbucket-logs'
   JekyllBlogBucket:
     Type: 'AWS::S3::Bucket'
     Properties:
@@ -91,8 +92,9 @@ Resources:
       VersioningConfiguration:
         Status: Enabled
       LoggingConfiguration:
-        DestinationBucketName: !Ref 'LogDeliveryBucket'
-        LogFilePrefix: !Sub '${ParentZoneStack}-bucket-logs'
+        DestinationBucketName: !Ref LogDeliveryBucket
+        LogFilePrefix: !Join [ "/", ["jekyll", "WWWBucketlogs", !Sub '${ParentZoneStack}']]
+        # LogFilePrefix: !Sub '${ParentZoneStack}-bucket-logs'
   JekyllBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
@@ -115,6 +117,12 @@ Resources:
     Properties:
       BucketName: !Ref LogDeliveryBucketName
       AccessControl: LogDeliveryWrite
+      LifecycleConfiguration:
+        Rules:
+        - Id: ExpiryRule
+          Prefix: "jekyll"
+          Status: Enabled
+          ExpirationInDays: '90'
       BucketEncryption:
         ServerSideEncryptionConfiguration:
         - ServerSideEncryptionByDefault:
